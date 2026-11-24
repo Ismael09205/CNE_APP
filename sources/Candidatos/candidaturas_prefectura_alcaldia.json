@@ -1,0 +1,73 @@
+{
+  "prefectura": [
+    {
+      "lista": "7",
+      "organizacion_politica": "MOVIMIENTO ACCION DEMOCRATICA NACIONAL, ADN",
+      "candidatos": {
+        "prefecto": "BLANCA DEL CONSUELO UNDA",
+        "viceprefecto": "ALFONSO VILLARROEL"
+      }
+    },
+    {
+      "lista": "8",
+      "organizacion_politica": "PARTIDO AVANZA",
+      "candidatos": {
+        "prefecto": "MAURICIO LARREA",
+        "viceprefecto": "ASTRID COTACACHI CORDOVA"
+      }
+    },
+    {
+      "lista": "62",
+      "organizacion_politica": "MOVIMIENTO SOMOS LIBRES",
+      "candidatos": {
+        "prefecto": "JOMAR CEVALLOS",
+        "viceprefecto": "MICHELLE PEREZ"
+      }
+    },
+    {
+      "lista": "70-17",
+      "organizacion_politica": "JUNTOS POR LA TRANSFORMACIÓN",
+      "candidatos": {
+        "prefecto": "PAOLINA VERCOUTERE",
+        "viceprefecto": "MICHAEL ENCALADA"
+      }
+    }
+  ],
+  "alcaldia": [
+    {
+      "lista": "7",
+      "organizacion_politica": "MOVIMIENTO ACCION DEMOCRATICA NACIONAL, ADN",
+      "candidatos": {
+        "alcalde": "ALICIA ANDRADE"
+      }
+    },
+    {
+      "lista": "8",
+      "organizacion_politica": "PARTIDO AVANZA",
+      "candidatos": {
+        "alcalde": "MARIA BELEN TAMBACO"
+      }
+    },
+    {
+      "lista": "17",
+      "organizacion_politica": "PARTIDO SOCIALISTA ECUATORIANO",
+      "candidatos": {
+        "alcalde": "DAMARIS LOZANO REINOSO"
+      }
+    },
+    {
+      "lista": "20",
+      "organizacion_politica": "MOVIMIENTO FUTURO",
+      "candidatos": {
+        "alcalde": "PETER UBIDIA"
+      }
+    },
+    {
+      "lista": "103-62",
+      "organizacion_politica": "SOMOS LIBRES POR EL VIVIR BIEN",
+      "candidatos": {
+        "alcalde": "ALFARO VALLEJO"
+      }
+    }
+  ]
+}
