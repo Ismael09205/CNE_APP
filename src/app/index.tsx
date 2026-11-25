@@ -1,17 +1,17 @@
-import { StyleSheet, Text, View } from 'react-native';
+// Ancla de la navegación: envía a cada persona a la sección que le corresponde.
+import { Redirect } from 'expo-router';
 
-// Pantalla provisional hasta la Fase 4 (login y navegación por rol).
+import { useSesion } from '@/presentation/providers/sesion';
+
+const DESTINO = {
+  coordinador_provincial: '/provincial',
+  coordinador_recinto: '/recinto',
+  veedor: '/veedor',
+} as const;
+
 export default function Inicio() {
-  return (
-    <View style={styles.contenedor}>
-      <Text style={styles.titulo}>Control Electoral</Text>
-      <Text style={styles.texto}>Configuración inicial lista.</Text>
-    </View>
-  );
+  const { estado, perfil } = useSesion();
+  if (estado === 'clave_temporal') return <Redirect href="/primer-ingreso" />;
+  if (estado === 'operativa' && perfil) return <Redirect href={DESTINO[perfil.rol]} />;
+  return <Redirect href="/login" />;
 }
-
-const styles = StyleSheet.create({
-  contenedor: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  titulo: { fontSize: 24, fontWeight: '700' },
-  texto: { fontSize: 18, marginTop: 8 },
-});

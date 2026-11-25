@@ -14,6 +14,7 @@ import type { EstadoEnvio } from '@/domain/value-objects/estado-envio';
 import { errorValidacion, type ErrorCasoDeUso } from '../errores';
 import type { AlmacenFotosLocal } from '../ports/almacen-fotos.port';
 import type { GeneradorId } from '../ports/generador-id.port';
+import type { ServidorActas } from '../ports/servidor-actas.port';
 import type { Reloj } from '../ports/reloj.port';
 import type { SesionActual } from '../ports/sesion.port';
 import { aViolaciones } from '../zod-violaciones';
@@ -62,17 +63,19 @@ export class RegistrarActa {
     private readonly deps: {
       readonly sesion: SesionActual;
       readonly asignaciones: Pick<AsignacionMesaRepository, 'obtenerVigentePorVeedor'>;
-      readonly mesas: MesaRepository;
+      readonly mesas: Pick<MesaRepository, 'obtenerPorId'>;
       readonly candidaturas: CandidaturaRepository;
       readonly outbox: ActaOutboxRepository;
       readonly fotos: AlmacenFotosLocal;
       readonly ids: GeneradorId;
       readonly reloj: Reloj;
+      /** Con conexión, evita registrar un acta que ya existe en el servidor (p. ej. la del veedor anterior). */
+      readonly servidor?: Pick<ServidorActas, 'dignidadesRegistradas'>;
     },
   ) {}
 
   async ejecutar(input: RegistrarActaInput): Promise<Result<RegistrarActaOutput, ErrorCasoDeUso<CodigoErrorRegistrarActa>>> {
-    const { sesion, asignaciones, mesas, candidaturas, outbox, fotos, ids, reloj } = this.deps;
+    const { sesion, asignaciones, mesas, candidaturas, outbox, fotos, ids, reloj, servidor } = this.deps;
 
     // 1. Quién registra: veedor habilitado con la mesa asignada (RF-16, S-04).
     const perfil = await sesion.perfilActual();
@@ -88,6 +91,11 @@ export class RegistrarActa {
 
     // 2. Una sola acta por (mesa, dignidad), también sin conexión (ADR-11, S-08).
     if (await outbox.existeParaMesaYDignidad(input.mesaId, input.dignidad)) return fail(error('acta_ya_registrada'));
+    if (servidor) {
+      // Sin conexión no se puede consultar: el servidor lo resolverá al sincronizar (conflicto).
+      const registradas = await servidor.dignidadesRegistradas(input.mesaId).catch(() => [] as Dignidad[]);
+      if (registradas.includes(input.dignidad)) return fail(error('acta_ya_registrada'));
+    }
 
     // 3. Mismo esquema que el formulario (ADR-12) + evidencia obligatoria (RF-13).
     const opciones = {

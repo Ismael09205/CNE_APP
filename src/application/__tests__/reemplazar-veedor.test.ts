@@ -53,7 +53,9 @@ describe('ReemplazarVeedor', () => {
     const { casoDeUso, asignaciones } = montar();
     const r = await casoDeUso.ejecutar({ mesaId: 'm1', nuevoVeedorId: 'libre' });
 
-    expect(r.ok && r.value).toMatchObject({ mesaId: 'm1', veedorId: 'libre', hasta: null });
+    expect(r.ok).toBe(true);
+    // Envía al servidor el veedor que se mostraba (detección de reemplazo concurrente).
+    expect(asignaciones.ultimoVeedorActual).toBe('ausente');
     const historial = asignaciones.asignaciones.filter((a) => a.mesaId === 'm1');
     expect(historial.find((a) => a.veedorId === 'ausente')?.hasta).not.toBeNull();
   });

@@ -1,7 +1,6 @@
 // F8 — Reemplazo inmediato de un veedor ausente (RF-10, S-04, S-06, ADR-10).
 // Estas validaciones dan mensajes claros antes de llamar al servidor; la RPC
 // `reemplazar_veedor` las repite dentro de una transacción con FOR UPDATE.
-import type { AsignacionMesa } from '@/domain/entities/asignacion-mesa';
 import { puedeOperar } from '@/domain/entities/perfil';
 import type { AsignacionMesaRepository, RechazoReemplazo } from '@/domain/repositories/asignacion-mesa.repository';
 import type { CoordinacionRecintoRepository } from '@/domain/repositories/coordinacion-recinto.repository';
@@ -52,7 +51,7 @@ export class ReemplazarVeedor {
     },
   ) {}
 
-  async ejecutar(input: ReemplazarVeedorInput): Promise<Result<AsignacionMesa, ErrorCasoDeUso<CodigoErrorReemplazo>>> {
+  async ejecutar(input: ReemplazarVeedorInput): Promise<Result<void, ErrorCasoDeUso<CodigoErrorReemplazo>>> {
     const { sesion, mesas, perfiles, coordinaciones, veedoresRecinto, asignaciones } = this.deps;
 
     const actor = await sesion.perfilActual();
@@ -79,7 +78,8 @@ export class ReemplazarVeedor {
     // S-04: una sola mesa vigente por veedor.
     if (await asignaciones.obtenerVigentePorVeedor(nuevo.id)) return fail(error('veedor_con_otra_mesa'));
 
-    const resultado = await asignaciones.reemplazarVeedor(mesa.id, nuevo.id);
-    return resultado.ok ? ok(resultado.value) : fail(error(resultado.error));
+    // Se envía el veedor que se mostraba: si otro coordinador lo cambió, el servidor lo detecta.
+    const resultado = await asignaciones.reemplazarVeedor(mesa.id, actual.veedorId, nuevo.id);
+    return resultado.ok ? ok(undefined) : fail(error(resultado.error));
   }
 }

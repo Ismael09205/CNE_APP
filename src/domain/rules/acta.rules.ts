@@ -24,8 +24,12 @@ export type OpcionesValidacionActa = {
 
 const esEnteroNoNegativo = (n: number) => Number.isInteger(n) && n >= 0;
 
+/** F6-8: el acta física tiene casillas de centena, decena y unidad para cada valor. */
+export const MAX_CASILLA_ACTA = 999;
+
 export const MENSAJES_ACTA = {
   entero: 'Escriba un número entero igual o mayor que 0.',
+  tresDigitos: `Máximo ${MAX_CASILLA_ACTA}: el acta tiene tres casillas (centena, decena y unidad).`,
   votosMayorQueTotal: 'Los votos no pueden ser más que el total de sufragantes.',
   totalMayorQueMaximo: (max: number) => `El total de sufragantes no puede pasar de ${max} (electores de la mesa).`,
   sumaNoCuadra: (suma: number, total: number) =>
@@ -70,6 +74,14 @@ export function validarResultadosActa(acta: ResultadosActaInput, opciones: Opcio
 
   // Las reglas de cifras solo tienen sentido si los números son válidos.
   if (violaciones.some((v) => v.codigo === 'entero')) return violaciones;
+
+  // 1b. Tres dígitos como máximo, igual que las casillas del acta (F6-8).
+  for (const [campo, valor] of campos) {
+    if (valor > MAX_CASILLA_ACTA) agregar([campo], 'tres_digitos', MENSAJES_ACTA.tresDigitos);
+  }
+  acta.votos.forEach((voto, i) => {
+    if (voto.votos > MAX_CASILLA_ACTA) agregar(['votos', i, 'votos'], 'tres_digitos', MENSAJES_ACTA.tresDigitos);
+  });
 
   // 3. Máximo de sufragantes de la mesa (opcional).
   const max = opciones.maxSufragantes;

@@ -21,6 +21,12 @@ const frameworks = [
   '@tanstack/**',
   '@react-native-community/**',
   '@sentry/**',
+  'uniwind',
+  'lucide-react-native',
+  'victory-native',
+  '@shopify/**',
+  '@maplibre/**',
+  '@expo-google-fonts/**',
 ];
 
 const prohibir = (grupos) => ({

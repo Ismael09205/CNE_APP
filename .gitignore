@@ -45,4 +45,11 @@ example
 
 # planes y decisiones del equipo (solo locales)
 PROJECT_SPEC.md
+planUi.md
 decisiones_CNE_App.md
+ESTADO_PROYECTO.md
+PRUEBAS_RF_ADR.md
+
+# skills locales del asistente (no se suben)
+.claude/skills/
+skills-lock.json

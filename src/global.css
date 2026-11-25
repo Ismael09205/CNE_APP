@@ -1,0 +1,52 @@
+/*
+ * Tokens de diseño (planUi.md, Figma "Voting App"), adaptados a la app electoral:
+ * - Formas, tarjetas, degradado, pestañas y tipografía Poppins del Figma.
+ * - Color principal azul petróleo con acento turquesa: vivo pero neutral; el violeta del Figma se parecía a listas en contienda (D-18).
+ * - Mínimo 16 px de texto, cuerpo de 18 px y contraste AA para personas mayores (RNF-05).
+ * - Solo tema claro (decisión del usuario); Uniwind.setTheme('light') en el layout raíz.
+ */
+@import 'tailwindcss';
+@import 'uniwind';
+
+@theme static {
+  /* Colores de marca: azul petróleo + acento turquesa (vivos pero sin asociación partidista, D-18) */
+  --color-primario: #0f4c5c;
+  --color-primario-presionado: #0b3a47;
+  --color-sobre-primario: #ffffff;
+  --color-degradado-desde: #0f766e;
+  --color-degradado-hasta: #0f4c5c;
+  --color-primario-suave: #dff1f1;
+  --color-acento: #14b8a6;
+  --color-acento-suave: #ccfbf1;
+  --color-sobre-degradado-suave: #ccfbf1;
+
+  /* Superficies y texto: fondo gris azulado y tarjetas blancas con sombra (profundidad del Figma) */
+  --color-fondo: #f3f6f7;
+  --color-campo: #ffffff;
+  --color-tarjeta: #ffffff;
+  --color-texto: #0f1020;
+  --color-texto-suave: #4b5563;
+  --color-borde: #d5dde0;
+  --color-pista: #d9e2e4;
+  --color-velo: rgba(8, 51, 68, 0.6);
+  --color-camara: #000000;
+
+  /* Estados */
+  --color-error: #b91c1c;
+  --color-fondo-error: #fee2e2;
+  --color-exito: #166534;
+  --color-fondo-exito: #dcfce7;
+  --color-info: #1e3a8a;
+  --color-fondo-info: #dbeafe;
+
+  /* Sombras: barra de pestañas (Figma: 0 0 8px rgba(0,0,0,.25)) y tarjetas */
+  --shadow-flotante: 0px 0px 8px 0px rgba(0, 0, 0, 0.25);
+  --shadow-tarjeta: 0px 2px 8px 0px rgba(15, 76, 92, 0.12);
+  --shadow-boton: 0px 4px 10px 0px rgba(15, 76, 92, 0.3);
+
+  /* Tipografía: solo Poppins (cada peso es su propia familia en React Native) */
+  --font-regular: 'Poppins_400Regular';
+  --font-medio: 'Poppins_500Medium';
+  --font-seminegrita: 'Poppins_600SemiBold';
+  --font-negrita: 'Poppins_700Bold';
+}

@@ -6,8 +6,10 @@ import type { Candidatura } from '@/domain/entities/candidatura';
 import type { Mesa } from '@/domain/entities/mesa';
 import type { Perfil } from '@/domain/entities/perfil';
 import type { VeedorRecinto } from '@/domain/entities/veedor-recinto';
+import { ESTADOS_REINTENTABLES, type EnvioActa } from '@/domain/entities/envio-acta';
+import type { EstadoEnvio } from '@/domain/value-objects/estado-envio';
 import type { ActaOutboxRepository } from '@/domain/repositories/acta-outbox.repository';
-import type { AsignacionMesaRepository, RechazoReemplazo } from '@/domain/repositories/asignacion-mesa.repository';
+import type { AsignacionMesaRepository, RechazoAsignacion, RechazoReemplazo } from '@/domain/repositories/asignacion-mesa.repository';
 import type { CandidaturaRepository } from '@/domain/repositories/candidatura.repository';
 import type { CoordinacionRecintoRepository } from '@/domain/repositories/coordinacion-recinto.repository';
 import type { CuentaCreada, CuentaRepository, RechazoCrearCuenta } from '@/domain/repositories/cuenta.repository';
@@ -67,12 +69,21 @@ export class PerfilesEnMemoria implements PerfilRepository {
   async obtenerPorId(id: string) {
     return this.perfiles.find((p) => p.id === id) ?? null;
   }
+  async listarVisibles() {
+    return this.perfiles;
+  }
 }
 
 export class MesasEnMemoria implements MesaRepository {
   constructor(public mesas: Mesa[] = []) {}
   async obtenerPorId(id: string) {
     return this.mesas.find((m) => m.id === id) ?? null;
+  }
+  async listarPorRecinto(recintoId: string) {
+    return this.mesas.filter((m) => m.recintoId === recintoId).map((m) => ({ ...m, veedor: null }));
+  }
+  async agregarRango() {
+    return ok(0);
   }
 }
 
@@ -87,12 +98,21 @@ export class CoordinacionesEnMemoria implements CoordinacionRecintoRepository {
   async obtenerVigentePorRecinto(recintoId: string) {
     return this.coordinaciones.find((c) => c.recintoId === recintoId && c.hasta === null) ?? null;
   }
+  async listarVigentes() {
+    return [];
+  }
+  async asignar() {
+    return ok(undefined);
+  }
 }
 
 export class VeedoresRecintoEnMemoria implements VeedorRecintoRepository {
   constructor(public membresias: VeedorRecinto[] = []) {}
   async obtenerVigentePorVeedor(veedorId: string) {
     return this.membresias.find((m) => m.veedorId === veedorId && m.hasta === null) ?? null;
+  }
+  async listarPorRecinto() {
+    return [];
   }
 }
 
@@ -107,26 +127,52 @@ export class AsignacionesEnMemoria implements AsignacionMesaRepository {
   async obtenerVigentePorVeedor(veedorId: string) {
     return this.asignaciones.find((a) => a.veedorId === veedorId && a.hasta === null) ?? null;
   }
-  async reemplazarVeedor(mesaId: string, nuevoVeedorId: string): Promise<Result<AsignacionMesa, RechazoReemplazo>> {
+  public ultimoVeedorActual: string | null = null;
+  async asignarVeedor(): Promise<Result<void, RechazoAsignacion>> {
+    return ok(undefined);
+  }
+  async reemplazarVeedor(mesaId: string, veedorActualId: string, nuevoVeedorId: string): Promise<Result<void, RechazoReemplazo>> {
     this.llamadasReemplazo++;
+    this.ultimoVeedorActual = veedorActualId;
     if (this.rechazoServidor) return fail(this.rechazoServidor);
     const ahora = new Date('2027-02-16T12:00:00Z');
     this.asignaciones = this.asignaciones.map((a) => (a.mesaId === mesaId && a.hasta === null ? { ...a, hasta: ahora } : a));
     const nueva: AsignacionMesa = { id: `a${this.asignaciones.length + 1}`, mesaId, veedorId: nuevoVeedorId, asignadoPor: 'coord', desde: ahora, hasta: null };
     this.asignaciones.push(nueva);
-    return ok(nueva);
+    return ok(undefined);
   }
 }
 
 export class OutboxEnMemoria implements ActaOutboxRepository {
   public actas: Acta[] = [];
+  public envios = new Map<string, EnvioActa>();
   public falla: Error | null = null;
+  /** Reloj de las marcas de tiempo (las pruebas lo fijan para controlar los reintentos). */
+  public ahora = () => new Date();
   async existeParaMesaYDignidad(mesaId: string, dignidad: Dignidad) {
     return this.actas.some((a) => a.mesaId === mesaId && a.dignidad === dignidad);
   }
   async guardarYEncolar(acta: Acta) {
     if (this.falla) throw this.falla;
     this.actas.push(acta);
+    this.envios.set(acta.id, { acta, estado: 'pendiente', intentos: 0, ultimoError: null, actualizadoEn: new Date(0) });
+  }
+  async listarPorEnviar(veedorId: string) {
+    return [...this.envios.values()].filter((e) => e.acta.veedorId === veedorId && ESTADOS_REINTENTABLES.includes(e.estado));
+  }
+  async listarPorMesa(mesaId: string) {
+    return [...this.envios.values()].filter((e) => e.acta.mesaId === mesaId);
+  }
+  async marcar(actaId: string, estado: EstadoEnvio, cambios: { error?: string | null; contarIntento?: boolean } = {}) {
+    const e = this.envios.get(actaId);
+    if (!e) return;
+    this.envios.set(actaId, {
+      ...e,
+      estado,
+      ultimoError: cambios.error !== undefined ? cambios.error : e.ultimoError,
+      intentos: e.intentos + (cambios.contarIntento ? 1 : 0),
+      actualizadoEn: this.ahora(),
+    });
   }
 }
 

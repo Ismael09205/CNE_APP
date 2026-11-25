@@ -3,6 +3,7 @@
 -- inactivas y con clave temporal. Simula sesiones como PostgREST:
 -- `set local role authenticated|anon` + `request.jwt.claims` con el `sub`.
 -- Corre en una transacción y termina en ROLLBACK. Requiere el seed cargado.
+-- Los conteos de personas se limitan a @rls.test para no depender de cuentas reales.
 --
 -- Personas:  P1 provincial activo · P2 provincial inactivo · P3 provincial con clave temporal
 --            C1 coordinador de r1 · C2 coordinador de r2 · C3 coordinador sin recinto (creado por P1)
@@ -69,6 +70,17 @@ language sql stable as $$
     insert into public.votos_acta (acta_id, candidatura_id, votos)
     select %1$L, k.id, %5$s from public.candidaturas k where k.dignidad = %3$L;$f$,
     acta, mesa, dignidad, veedor, votos, total);
+$$;
+
+-- Llamada a la RPC registrar_acta (Fase 6) con los mismos datos que sql_acta.
+create function pg_temp.sql_rpc_acta(acta uuid, mesa uuid, dignidad text, votos int, total int) returns text
+language sql stable as $$
+  select format($f$select public.registrar_acta(%L::jsonb)$f$,
+    jsonb_build_object('id', acta, 'mesa_id', mesa, 'dignidad', dignidad, 'votos_nulos', 0, 'votos_blancos', 0,
+      'total_sufragantes', total, 'confirmada_en', now(), 'capturada_en', now(), 'lat', 0.3, 'lng', -78.26,
+      'precision_m', 6, 'ubicacion_simulada', false,
+      'votos', (select jsonb_agg(jsonb_build_object('candidatura_id', k.id, 'votos', votos))
+                  from public.candidaturas k where k.dignidad = sql_rpc_acta.dignidad)));
 $$;
 
 -- ---------------------------------------------------------------------------
@@ -163,13 +175,13 @@ select pg_temp.ver('P1 ve los 24 recintos', pg_temp.id('P1'), 'select 1 from pub
 select pg_temp.ver('P1 ve las 144 mesas', pg_temp.id('P1'), 'select 1 from public.mesas', 144);
 select pg_temp.ver('P1 ve las 9 candidaturas', pg_temp.id('P1'), 'select 1 from public.candidaturas', 9);
 select pg_temp.ver('P1 ve el acta A1 y sus 5 votos', pg_temp.id('P1'), 'select 1 from public.votos_acta', 5);
-select pg_temp.ver('P1 ve 9 personas (él, C3 que creó, C1, C2, V1–V5)', pg_temp.id('P1'), 'select 1 from public.perfiles', 9);
+select pg_temp.ver('P1 ve 9 personas (él, C3 que creó, C1, C2, V1–V5)', pg_temp.id('P1'), $$select 1 from public.perfiles where correo like '%@rls.test'$$, 9);
 select pg_temp.ver('P1 no ve a otros provinciales', pg_temp.id('P1'), $$select 1 from public.perfiles where rol = 'coordinador_provincial'$$, 1);
 select pg_temp.ver('P1 ve las 4 asignaciones', pg_temp.id('P1'), 'select 1 from public.asignaciones_mesa', 4);
 select pg_temp.ver('P1 ve la foto de A1', pg_temp.id('P1'), $$select 1 from storage.objects where bucket_id = 'actas'$$, 1);
 select pg_temp.intenta('P1 da de alta un recinto en su jurisdicción', pg_temp.id('P1'),
-  format($$insert into public.recintos (parroquia_id, codigo, nombre, codigo_zona, lat, lng, creado_por)
-          values (5910, '999901', 'Recinto de prueba', 0, 0.3, -78.26, %L)$$, pg_temp.id('P1')), 'ok');
+  format($$insert into public.recintos (parroquia_id, codigo, nombre, codigo_zona, lat, lng, precision_m, creado_por)
+          values (5910, '999901', 'Recinto de prueba', 0, 0.3, -78.26, 10, %L)$$, pg_temp.id('P1')), 'ok');
 select pg_temp.intenta('P1 no firma un recinto a nombre de otro', pg_temp.id('P1'),
   format($$insert into public.recintos (parroquia_id, codigo, nombre, codigo_zona, lat, lng, creado_por)
           values (5910, '999902', 'Recinto de prueba', 0, 0.3, -78.26, %L)$$, pg_temp.id('C1')), '42501');
@@ -187,12 +199,12 @@ select pg_temp.intenta('P1 no asigna directamente (solo por RPC)', pg_temp.id('P
 select pg_temp.ver('C1 ve solo su recinto', pg_temp.id('C1'), 'select 1 from public.recintos', 1);
 select pg_temp.ver('C1 ve las 20 mesas de r1 (19 + la nueva)', pg_temp.id('C1'), 'select 1 from public.mesas', 20);
 select pg_temp.ver('C1 ve el acta A1', pg_temp.id('C1'), 'select 1 from public.actas', 1);
-select pg_temp.ver('C1 ve 5 personas (él y V1, V2, V4, V5)', pg_temp.id('C1'), 'select 1 from public.perfiles', 5);
+select pg_temp.ver('C1 ve 5 personas (él y V1, V2, V4, V5)', pg_temp.id('C1'), $$select 1 from public.perfiles where correo like '%@rls.test'$$, 5);
 select pg_temp.ver('C1 ve las 3 asignaciones de r1', pg_temp.id('C1'), 'select 1 from public.asignaciones_mesa', 3);
 select pg_temp.ver('C1 ve la foto de A1', pg_temp.id('C1'), $$select 1 from storage.objects where bucket_id = 'actas'$$, 1);
 select pg_temp.ver('C2 ve solo su recinto y sus 10 mesas', pg_temp.id('C2'), 'select 1 from public.mesas', 10);
 select pg_temp.ver('C2 no ve actas de otro recinto', pg_temp.id('C2'), 'select 1 from public.actas', 0);
-select pg_temp.ver('C2 ve 2 personas (él y V3)', pg_temp.id('C2'), 'select 1 from public.perfiles', 2);
+select pg_temp.ver('C2 ve 2 personas (él y V3)', pg_temp.id('C2'), $$select 1 from public.perfiles where correo like '%@rls.test'$$, 2);
 select pg_temp.ver('C2 no ve la foto de r1', pg_temp.id('C2'), $$select 1 from storage.objects where bucket_id = 'actas'$$, 0);
 select pg_temp.ver('C3 sin recinto: no ve recintos', pg_temp.id('C3'), 'select 1 from public.recintos', 0);
 select pg_temp.ver('C3 sin recinto: sí ve el catálogo', pg_temp.id('C3'), 'select 1 from public.candidaturas', 9);
@@ -218,7 +230,8 @@ select pg_temp.ver('V3 no ve la foto de otra mesa', pg_temp.id('V3'), $$select 1
 select pg_temp.ver('V2 sin mesa: no ve mesas', pg_temp.id('V2'), 'select 1 from public.mesas', 0);
 
 select pg_temp.intenta('V1 sube la foto de prefectura de su mesa', pg_temp.id('V1'),
-  format($$insert into storage.objects (bucket_id, name) values ('actas', %L)$$, pg_temp.id('m1') || '/prefectura.jpg'), 'ok');
+  format($$insert into storage.objects (bucket_id, name, owner_id) values ('actas', %L, %L)$$,
+         pg_temp.id('m1') || '/prefectura.jpg', pg_temp.id('V1')), 'ok');
 select pg_temp.intenta('V1 no sube fotos a otra mesa', pg_temp.id('V1'),
   format($$insert into storage.objects (bucket_id, name) values ('actas', %L)$$, pg_temp.id('m3') || '/alcaldia.jpg'), '42501');
 select pg_temp.intenta('V1 no sube fotos con otro nombre', pg_temp.id('V1'),
@@ -230,19 +243,21 @@ select pg_temp.intenta('V1 intenta borrar la foto (sin política: 0 filas o rech
 select pg_temp.es('la foto de A1 sigue intacta (ADR-14)',
   (select metadata is distinct from '{"x":1}'::jsonb from storage.objects where bucket_id = 'actas' and name = pg_temp.id('m1') || '/alcaldia.jpg'));
 
-select pg_temp.intenta('V1: un acta que no cuadra la rechaza la base aunque pase RLS', pg_temp.id('V1'),
-  pg_temp.sql_acta(gen_random_uuid(), pg_temp.id('m1'), 'prefectura', pg_temp.id('V1'), 10, 41), 'suma_no_cuadra');
-select pg_temp.intenta('V1 registra el acta de prefectura de su mesa', pg_temp.id('V1'),
-  pg_temp.sql_acta(pg_temp.id('A2'), pg_temp.id('m1'), 'prefectura', pg_temp.id('V1'), 10, 40), 'ok');
-select pg_temp.intenta('V1 no registra en otra mesa', pg_temp.id('V1'),
-  pg_temp.sql_acta(gen_random_uuid(), pg_temp.id('m3'), 'alcaldia', pg_temp.id('V1'), 20, 100), '42501');
-select pg_temp.intenta('V1 no registra a nombre de otro veedor', pg_temp.id('V1'),
-  pg_temp.sql_acta(gen_random_uuid(), pg_temp.id('m1'), 'prefectura', pg_temp.id('V2'), 10, 40), '42501');
+-- Fase 6: el alta es solo por la RPC registrar_acta (se quitó el INSERT directo).
+select pg_temp.intenta('V1 no inserta actas directamente (solo RPC)', pg_temp.id('V1'),
+  pg_temp.sql_acta(gen_random_uuid(), pg_temp.id('m1'), 'prefectura', pg_temp.id('V1'), 10, 40), '42501');
+select pg_temp.intenta('V1 no inserta votos directamente', pg_temp.id('V1'),
+  format($$insert into public.votos_acta (acta_id, candidatura_id, votos)
+          select %L, k.id, 1 from public.candidaturas k limit 1$$, pg_temp.id('A1')), '42501');
 select pg_temp.intenta('V1 no elige el estado del acta', pg_temp.id('V1'),
   format($$insert into public.actas (id, mesa_id, dignidad, veedor_id, votos_nulos, votos_blancos, total_sufragantes, estado)
           values (gen_random_uuid(), %L, 'prefectura', %L, 0, 0, 0, 'borrador')$$, pg_temp.id('m1'), pg_temp.id('V1')), '42501');
-select pg_temp.intenta('V1 no registra una segunda acta de prefectura', pg_temp.id('V1'),
-  pg_temp.sql_acta(gen_random_uuid(), pg_temp.id('m1'), 'prefectura', pg_temp.id('V1'), 10, 40), '23505');
+select pg_temp.intenta('V1: un acta que no cuadra la rechaza la base (RPC)', pg_temp.id('V1'),
+  pg_temp.sql_rpc_acta(gen_random_uuid(), pg_temp.id('m1'), 'prefectura', 10, 41), 'suma_no_cuadra');
+select pg_temp.intenta('V1 registra el acta de prefectura de su mesa (RPC)', pg_temp.id('V1'),
+  pg_temp.sql_rpc_acta(pg_temp.id('A2'), pg_temp.id('m1'), 'prefectura', 10, 40), 'ok');
+select pg_temp.intenta('V1 no registra en otra mesa (RPC)', pg_temp.id('V1'),
+  pg_temp.sql_rpc_acta(gen_random_uuid(), pg_temp.id('m3'), 'alcaldia', 20, 100), 'fuera_de_vigencia');
 select pg_temp.intenta('V1 no edita su acta (RF-14)', pg_temp.id('V1'),
   format('update public.actas set votos_nulos = 1 where id = %L', pg_temp.id('A1')), '42501');
 select pg_temp.intenta('V1 no borra su acta', pg_temp.id('V1'),
