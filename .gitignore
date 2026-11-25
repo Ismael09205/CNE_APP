@@ -56,3 +56,8 @@ skills-lock.json
 
 # Token de Sentry para subir los source maps (secreto, nunca al repositorio)
 .env.sentry-build-plugin
+
+# documentos .md no necesarios en el repositorio (solo locales)
+README.md
+AGENTS.md
+CLAUDE.md
