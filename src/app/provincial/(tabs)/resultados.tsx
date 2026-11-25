@@ -1,1 +1,1 @@
-export { PantallaResultados as default } from '@/presentation/pantallas/perfil';
+export { TableroProvincial as default } from '@/presentation/pantallas/resultados';

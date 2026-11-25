@@ -1,1 +1,1 @@
-export { PantallaResultados as default } from '@/presentation/pantallas/perfil';
+export { ActasMiRecinto as default } from '@/presentation/pantallas/resultados';

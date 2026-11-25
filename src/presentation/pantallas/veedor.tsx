@@ -38,7 +38,7 @@ import { MENSAJE_INESPERADO, mensajeError, mensajesCampo } from '../hooks/use-er
 import { useCasosDeUso } from '../providers/contenedor';
 import { useSesion } from '../providers/sesion';
 import { useSincronizacion } from '../providers/sincronizacion';
-import { logoDeLista } from '../theme/logos-listas';
+import { LogoLista } from '../components/logo-lista';
 import { NOMBRE_ROL, PantallaPerfil } from './perfil';
 
 export const NOMBRE_DIGNIDAD: Record<Dignidad, string> = { alcaldia: 'Alcaldía', prefectura: 'Prefectura' };
@@ -90,7 +90,7 @@ function TarjetaActa({ acta }: { acta: EstadoActaMesa }) {
       </View>
       <Aviso tipo={estado.tipo}>{estado.texto}</Aviso>
       {detalle ? <Parrafo suave>{detalle}</Parrafo> : null}
-      {acta.requiereRevision ? <Parrafo suave>La ubicación quedó marcada para revisión.</Parrafo> : null}
+      {acta.requiereRevision ? <Parrafo suave>Su coordinador revisará la ubicación de esta acta.</Parrafo> : null}
       {acta.estado === 'sin_registrar' ? (
         <Boton
           titulo={`Registrar acta de ${NOMBRE_DIGNIDAD[acta.dignidad].toLowerCase()}`}
@@ -237,7 +237,9 @@ export function RegistroActa({ dignidad }: { dignidad: Dignidad }) {
   if (acta?.estado !== 'sin_registrar') {
     return (
       <Pantalla volver>
-        <Aviso tipo="info">El acta de {NOMBRE_DIGNIDAD[dignidad].toLowerCase()} ya fue registrada y no se puede cambiar.</Aviso>
+        <Aviso tipo="info" titulo="Esta acta ya está registrada">
+          Por seguridad, el acta de {NOMBRE_DIGNIDAD[dignidad].toLowerCase()} ya no se puede cambiar.
+        </Aviso>
       </Pantalla>
     );
   }
@@ -377,15 +379,12 @@ function FormularioActa({
       {campoNumero('votosNulos', 'Votos nulos')}
       <Subtitulo>Votación por lista</Subtitulo>
       {candidaturas.map((c, i) => {
-        const logo = logoDeLista(c.lista);
         return (
-          // Figma: tarjeta de candidato (logo a la izquierda). La franja usa el color de la lista (D-18).
+          // Figma: tarjeta de candidato (logo arriba, en su proporción). La franja usa el color de la lista (D-18).
           <View key={c.id} className="my-1 rounded-2xl border-l-8 bg-tarjeta shadow-tarjeta p-4" style={{ borderLeftColor: c.color }}>
-            <View className="mb-3 flex-row items-center gap-4">
-              {logo ? (
-                <Image source={logo} className="size-16 rounded-lg bg-fondo" resizeMode="contain" accessibilityIgnoresInvertColors />
-              ) : null}
-              <View className="flex-1">
+            <View className="mb-3 gap-2">
+              <LogoLista lista={c.lista} color={c.color} alto={48} anchoMax={200} />
+              <View>
                 <Text className="font-negrita text-xl text-texto">Lista {c.lista}</Text>
                 <Text className="font-medio text-base text-texto">{c.organizacionPolitica}</Text>
                 <Text className="font-regular text-base text-texto-suave">{c.binomio ? `${c.candidato} / ${c.binomio}` : c.candidato}</Text>
@@ -408,7 +407,7 @@ function FormularioActa({
         );
       })}
 
-      {intentado && errorForm ? <Aviso tipo="error">Revise los datos marcados.</Aviso> : null}
+      {intentado && errorForm ? <Aviso tipo="error" titulo="Revise los datos marcados">Los campos en rojo le dicen qué corregir.</Aviso> : null}
       <form.Subscribe selector={(s) => s.isSubmitting}>
         {(enviando) =>
           conFoto ? (
@@ -489,7 +488,7 @@ function PasoConfirmacion({
     setConfirmacion({
       titulo: 'Confirmación',
       mensaje: '¿Está seguro? El acta no se podrá modificar después.',
-      nota: 'Compruebe que los números coinciden con el acta física. Se enviará en cuanto haya conexión.',
+      nota: 'Revise que los números sean iguales a los del acta en papel. Se enviará apenas haya conexión.',
       textoCancelar: 'Volver a revisar',
       textoConfirmar: 'Confirmar',
       alConfirmar: () => void guardar(),
@@ -498,7 +497,7 @@ function PasoConfirmacion({
   return (
     <Pantalla volver={alCorregir}>
       <Titulo>Confirme el acta de {NOMBRE_DIGNIDAD[dignidad].toLowerCase()}</Titulo>
-      <Parrafo suave>Compare cada número y su escritura en letras con el acta física.</Parrafo>
+      <Parrafo suave>Compare cada número, y cómo se escribe en letras, con el acta en papel.</Parrafo>
       <View className="my-2 rounded-2xl bg-tarjeta shadow-tarjeta px-4 py-1">
         <FilaConfirmacion etiqueta="Total de sufragantes" valor={resultados.totalSufragantes} />
         <FilaConfirmacion etiqueta="Votos en blanco" valor={resultados.votosBlancos} />
@@ -508,8 +507,15 @@ function PasoConfirmacion({
         ))}
       </View>
       <Image source={{ uri: foto.uri }} className="my-2 h-72 w-full rounded-2xl bg-tarjeta shadow-tarjeta" resizeMode="contain" accessibilityLabel="Foto del acta" />
-      <Parrafo suave>Ubicación registrada con un error de {Math.round(ubicacion.precisionM)} m.</Parrafo>
-      {ubicacion.aviso ? <Aviso tipo="info">{ubicacion.aviso}</Aviso> : null}
+      {ubicacion.aviso ? (
+        <Aviso tipo="advertencia" titulo="Su coordinador revisará la ubicación">
+          {ubicacion.aviso}
+        </Aviso>
+      ) : (
+        <Aviso tipo="exito" titulo="Ubicación lista">
+          Margen del GPS: {Math.round(ubicacion.precisionM)} m.
+        </Aviso>
+      )}
       {error ? <Aviso tipo="error">{error}</Aviso> : null}
       <Boton titulo="Confirmar y guardar" icono={Send} onPress={confirmar} cargando={guardando} />
       <Boton titulo="Corregir los números" variante="secundario" icono={Pencil} onPress={alCorregir} deshabilitado={guardando} />

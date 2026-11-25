@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router/js-tabs';
-import { ChartColumn, ClipboardList, House, User, Users } from '@/presentation/components/iconos';
+import { ClipboardList, FileText, House, User, Users } from '@/presentation/components/iconos';
 
 import { crearBarraPestanas } from '@/presentation/components/barra-pestanas';
 
@@ -7,7 +7,7 @@ const Barra = crearBarraPestanas({
   index: { titulo: 'Inicio', icono: House },
   mesas: { titulo: 'Mesas', icono: ClipboardList },
   personas: { titulo: 'Veedores', icono: Users },
-  resultados: { titulo: 'Votos', icono: ChartColumn },
+  resultados: { titulo: 'Actas', icono: FileText },
   perfil: { titulo: 'Perfil', icono: User },
 });
 

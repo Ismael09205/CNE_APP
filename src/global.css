@@ -38,6 +38,8 @@
   --color-fondo-exito: #dcfce7;
   --color-info: #1e3a8a;
   --color-fondo-info: #dbeafe;
+  --color-advertencia: #92400e;
+  --color-fondo-advertencia: #fef3c7;
 
   /* Sombras: barra de pestañas (Figma: 0 0 8px rgba(0,0,0,.25)) y tarjetas */
   --shadow-flotante: 0px 0px 8px 0px rgba(0, 0, 0, 0.25);

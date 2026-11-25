@@ -30,7 +30,7 @@ export function PanelProvincial() {
         icono={Building2}
         titulo="Recintos en su jurisdicción"
         valor={recintos.data ? String(recintos.data.length) : '…'}
-        detalle="Toque «Recintos» abajo para ver cada uno."
+        detalle="Puede verlos uno por uno en la pestaña Recintos."
       />
       <Subtitulo>¿Qué desea hacer?</Subtitulo>
       <FilaMenu titulo="Nuevo recinto" icono={MapPinPlus} onPress={() => router.push('/provincial/recinto-nuevo')} />
@@ -96,7 +96,9 @@ export function PanelRecinto() {
           <FilaMenu titulo="Asignar veedores a las mesas" icono={ClipboardList} onPress={() => router.push('/recinto/mesas')} />
         </>
       ) : (
-        <Aviso tipo="info">Todavía no tiene un recinto asignado. Comuníquese con el coordinador provincial.</Aviso>
+        <Aviso tipo="info" titulo="Aún no tiene recinto">
+          Pídale a su coordinador provincial que se lo asigne.
+        </Aviso>
       )}
     </Pantalla>
   );

@@ -140,7 +140,7 @@ export function NuevoRecinto() {
   return (
     <Pantalla volver>
       <Titulo>Nuevo recinto</Titulo>
-      <Parrafo suave>Debe estar en el recinto: la ubicación se toma con el GPS del teléfono.</Parrafo>
+      <Parrafo suave>Registre el recinto estando allí: la ubicación se toma con el GPS del teléfono, mejor al aire libre.</Parrafo>
 
       <form.Field name="parroquiaId" validators={{ onSubmit: ({ value }) => (value ? undefined : 'Elija la parroquia.') }}>
         {(f) => (
@@ -171,11 +171,11 @@ export function NuevoRecinto() {
       </form.Field>
 
       {gps ? (
-        <Aviso tipo="exito">
-          Ubicación tomada: {gps.lat.toFixed(6)}, {gps.lng.toFixed(6)} (precisión {Math.round(gps.precisionM)} m)
+        <Aviso tipo="exito" titulo="Ubicación lista">
+          Margen del GPS: {Math.round(gps.precisionM)} m · {gps.lat.toFixed(5)}, {gps.lng.toFixed(5)}
         </Aviso>
       ) : (
-        <Parrafo suave>La precisión debe ser de {PRECISION_MAXIMA_M} metros o mejor.</Parrafo>
+        <Parrafo suave>Necesitamos un margen de {PRECISION_MAXIMA_M} metros o menos. Al aire libre suele lograrse en pocos segundos.</Parrafo>
       )}
       <Boton
         titulo={gps ? 'Volver a tomar la ubicación' : 'Tomar ubicación del recinto'}
@@ -272,7 +272,7 @@ export function DetalleRecintoProvincial({ recintoId }: { recintoId: string }) {
       {eligiendo ? (
         <>
           {libres.length === 0 ? (
-            <Aviso tipo="info">No hay coordinadores de recinto libres. Cree uno en «Crear cuenta».</Aviso>
+            <Aviso tipo="info" titulo="No hay coordinadores disponibles">Puede crear uno con Crear cuenta, en el Inicio.</Aviso>
           ) : (
             libres.map((c) => (
               <Tarjeta key={c.id} etiqueta={`Asignar a ${c.nombres} ${c.apellidos}`} onPress={() => asignar(c.id, `${c.nombres} ${c.apellidos}`)}>
@@ -354,7 +354,13 @@ export function MesasRecinto() {
       {mesas.isPending ? <Cargando texto="Cargando mesas…" /> : null}
       {mesas.isError ? <Aviso tipo="error">{MENSAJE_INESPERADO}</Aviso> : null}
       {mesas.data ? (
-        sinVeedor > 0 ? <Aviso tipo="info">{sinVeedor} mesas sin veedor.</Aviso> : <Aviso tipo="exito">Todas las mesas tienen veedor.</Aviso>
+        sinVeedor > 0 ? (
+          <Aviso tipo="advertencia" titulo={sinVeedor === 1 ? '1 mesa sin veedor' : `${sinVeedor} mesas sin veedor`}>
+            Asígneles un veedor antes de la jornada.
+          </Aviso>
+        ) : (
+          <Aviso tipo="exito" titulo="¡Todas las mesas tienen veedor!" />
+        )
       ) : null}
       {mesas.data?.map((m) => (
         <Tarjeta key={m.id} etiqueta={etiquetaMesa(m)} onPress={() => router.push({ pathname: '/recinto/mesa/[id]', params: { id: m.id } })}>
@@ -416,7 +422,7 @@ export function MesaRecinto({ mesaId }: { mesaId: string }) {
   if (!mesa) {
     return (
       <Pantalla volver>
-        {mesas.isPending ? <Cargando texto="Cargando…" /> : <Aviso tipo="error">No se encontró la mesa.</Aviso>}
+        {mesas.isPending ? <Cargando texto="Cargando…" /> : <Aviso tipo="error" titulo="No encontramos esta mesa">Vuelva atrás y elíjala otra vez.</Aviso>}
       </Pantalla>
     );
   }
@@ -429,7 +435,7 @@ export function MesaRecinto({ mesaId }: { mesaId: string }) {
       <Subtitulo>{mesa.veedor ? 'Elija el veedor que lo reemplaza' : 'Elija un veedor libre de su recinto'}</Subtitulo>
       {veedores.isPending ? <Cargando texto="Cargando veedores…" /> : null}
       {veedores.data && libres.length === 0 ? (
-        <Aviso tipo="info">No hay veedores libres en su recinto. Cree uno en «Crear veedor».</Aviso>
+        <Aviso tipo="info" titulo="Todos sus veedores ya tienen mesa">Puede registrar uno nuevo con Crear veedor, en el Inicio.</Aviso>
       ) : null}
       {libres.map((v) => (
         <Tarjeta key={v.id} etiqueta={`Elegir a ${v.nombres} ${v.apellidos}`} onPress={() => elegir(v.id, `${v.nombres} ${v.apellidos}`)}>

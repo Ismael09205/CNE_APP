@@ -10,7 +10,7 @@ import { datosPersonalesSchema, type NuevaCuentaInput } from '@/domain/schemas/p
 
 import { MENSAJE_INESPERADO, mensajeError, mensajesCampo } from '../hooks/use-errores';
 import { useCasosDeUso } from '../providers/contenedor';
-import { Aviso, Boton, Campo, Dato, Opciones, Parrafo } from './ui';
+import { Aviso, Boton, Campo, Dato, DatoSecreto, Opciones, Parrafo } from './ui';
 
 type RolCreable = 'coordinador_recinto' | 'veedor';
 const ETIQUETA_ROL: Record<RolCreable, string> = { coordinador_recinto: 'Coordinador de recinto', veedor: 'Veedor' };
@@ -71,13 +71,13 @@ export function FormularioCuenta({
   if (creada) {
     return (
       <>
-        <Aviso tipo="exito">Cuenta creada para {creada.nombre}.</Aviso>
-        <Parrafo>Entregue estos datos a la persona. La clave temporal se muestra solo esta vez:</Parrafo>
+        <Aviso tipo="exito" titulo="¡Cuenta creada!">{creada.nombre} ya puede ingresar a la app.</Aviso>
+        <Parrafo>Entregue estos datos a la persona. La contraseña temporal se muestra solo esta vez: toque el ojo para verla.</Parrafo>
         <View className="rounded-2xl bg-tarjeta shadow-tarjeta px-4 py-2">
           <Dato etiqueta="Correo" valor={creada.correo} />
-          <Dato etiqueta="Clave temporal" valor={creada.clave} />
+          <DatoSecreto etiqueta="Contraseña temporal" valor={creada.clave} />
         </View>
-        <Parrafo suave>Al ingresar por primera vez se le pedirá un código enviado a su correo y una clave nueva.</Parrafo>
+        <Parrafo suave>En su primer ingreso, la persona recibirá un código en su correo y elegirá una clave nueva.</Parrafo>
         <Boton titulo="Crear otra cuenta" onPress={() => setCreada(null)} />
       </>
     );
@@ -144,7 +144,7 @@ export function FormularioCuenta({
               )}
             </form.Field>
           ) : rol === 'coordinador_recinto' ? (
-            <Parrafo suave>El recinto del coordinador se asigna después, desde la gestión de recintos.</Parrafo>
+            <Parrafo suave>El recinto se le asigna después, desde la pestaña Recintos.</Parrafo>
           ) : null
         }
       </form.Subscribe>

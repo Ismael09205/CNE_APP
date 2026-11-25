@@ -16,8 +16,8 @@ type ContextoSesion = {
   /** Ejecuta una operación de acceso sin que la navegación cambie a mitad; al final refresca el perfil. */
   readonly enTransicion: <T>(operacion: () => Promise<T>) => Promise<T>;
   /** Mensaje para la pantalla de ingreso (p. ej. «su clave nueva quedó guardada»). */
-  readonly avisoIngreso: { readonly tipo: 'exito' | 'info'; readonly texto: string } | null;
-  readonly avisarEnIngreso: (aviso: { tipo: 'exito' | 'info'; texto: string } | null) => void;
+  readonly avisoIngreso: { readonly tipo: 'exito' | 'info'; readonly titulo: string; readonly texto: string } | null;
+  readonly avisarEnIngreso: (aviso: { tipo: 'exito' | 'info'; titulo: string; texto: string } | null) => void;
 };
 
 const Contexto = createContext<ContextoSesion | null>(null);

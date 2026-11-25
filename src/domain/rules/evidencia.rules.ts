@@ -14,9 +14,9 @@ export const requiereRevisionUbicacion = (evidencia: { readonly precisionM: numb
 export const requiereRevisionActa = requiereRevisionUbicacion;
 
 export const MENSAJES_REVISION = {
-  simulada: 'La ubicación parece simulada. El acta se enviará marcada para revisión.',
+  simulada: 'El teléfono indica que la ubicación podría no ser real. El acta se guardará igual y su coordinador la revisará.',
   imprecisa: (m: number) =>
-    `La ubicación tiene un error de ${Math.round(m)} m (más de ${PRECISION_MAX_ACTA_M} m). El acta se enviará marcada para revisión.`,
+    `El GPS ubicó el teléfono con un margen de ${Math.round(m)} m (lo ideal es menos de ${PRECISION_MAX_ACTA_M} m). El acta se guardará igual y su coordinador la revisará.`,
 } as const;
 
 /**

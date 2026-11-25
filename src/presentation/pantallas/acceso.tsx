@@ -48,7 +48,11 @@ export function PantallaIngreso() {
           Ingrese con el correo y la clave que le entregó su coordinador.
         </Parrafo>
       </View>
-      {avisoIngreso ? <Aviso tipo={avisoIngreso.tipo}>{avisoIngreso.texto}</Aviso> : null}
+      {avisoIngreso ? (
+        <Aviso tipo={avisoIngreso.tipo} titulo={avisoIngreso.titulo}>
+          {avisoIngreso.texto}
+        </Aviso>
+      ) : null}
       <form.Field name="correo">
         {(f) => (
           <Campo
@@ -166,11 +170,11 @@ function useAlGuardarClave() {
   const { avisarEnIngreso } = useSesion();
   return (r: { ok: true } | { ok: false; error: { codigo: string; mensaje: string } }): string | null => {
     if (r.ok) {
-      avisarEnIngreso({ tipo: 'exito', texto: MENSAJE_CLAVE_GUARDADA });
+      avisarEnIngreso({ tipo: 'exito', titulo: '¡Clave guardada!', texto: MENSAJE_CLAVE_GUARDADA });
       return null;
     }
     if (r.error.codigo === 'no_requerido') {
-      avisarEnIngreso({ tipo: 'info', texto: r.error.mensaje });
+      avisarEnIngreso({ tipo: 'info', titulo: 'Su clave ya estaba cambiada', texto: r.error.mensaje });
       return null;
     }
     return mensajeError(r.error);
@@ -300,7 +304,7 @@ export function PantallaRecuperar() {
       ) : (
         <>
           <Parrafo>Escriba su correo. Le enviaremos un código para elegir una clave nueva.</Parrafo>
-          <Parrafo suave>Si no puede recibir correos, pida a su coordinador una clave temporal nueva.</Parrafo>
+          <Parrafo suave>¿No puede revisar su correo? Su coordinador puede darle una clave temporal nueva.</Parrafo>
           <View className="mt-4">
             <form.Field name="correo">
               {(f) => (

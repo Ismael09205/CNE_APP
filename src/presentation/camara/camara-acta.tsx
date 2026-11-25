@@ -120,7 +120,7 @@ export function CamaraActa({ alDisparar, alConfirmar, alCancelar }: Props) {
   if (!dispositivo) {
     return (
       <Pantalla volver={alCancelar} fija>
-        <Aviso tipo="error">No se encontró la cámara trasera del teléfono.</Aviso>
+        <Aviso tipo="error" titulo="No encontramos la cámara">Este teléfono no tiene cámara trasera disponible.</Aviso>
       </Pantalla>
     );
   }

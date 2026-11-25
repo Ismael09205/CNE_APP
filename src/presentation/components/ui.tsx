@@ -1,7 +1,7 @@
 // Componentes base con el diseño de planUi.md (Figma "Voting App") y Uniwind.
 // RNF-05/RNF-06: texto mínimo de 16 px, cuerpo de 18 px, contraste AA y objetivos táctiles de 56 px.
 import { router } from 'expo-router';
-import { AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, Eye, EyeOff, Info, type LucideIcon } from '@/presentation/components/iconos';
+import { CheckCircle2, ChevronLeft, ChevronRight, Eye, EyeOff, Info, type LucideIcon } from '@/presentation/components/iconos';
 import { createContext, useContext, useRef, useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
@@ -19,6 +19,7 @@ import { SafeAreaView as SafeAreaViewBase } from 'react-native-safe-area-context
 import { withUniwind } from 'uniwind';
 
 import { Icono, type TonoIcono } from './icono';
+import { IconoEstado, type TipoEstado } from './icono-estado';
 
 const SafeAreaView = withUniwind(SafeAreaViewBase);
 
@@ -329,23 +330,30 @@ export function Opciones<T extends string>({
 // ---------------------------------------------------------------------------
 // Avisos
 // ---------------------------------------------------------------------------
-export type TipoAviso = 'error' | 'exito' | 'info';
+export type TipoAviso = TipoEstado;
 
-const AVISO: Record<TipoAviso, { fondo: string; texto: string; tono: TonoIcono; icono: LucideIcon }> = {
-  error: { fondo: 'bg-fondo-error', texto: 'text-error', tono: 'error', icono: AlertCircle },
-  exito: { fondo: 'bg-fondo-exito', texto: 'text-exito', tono: 'exito', icono: CheckCircle2 },
-  info: { fondo: 'bg-fondo-info', texto: 'text-info', tono: 'info', icono: Info },
+// Tarjeta de estado: ícono animado (Lottie) en un círculo de color, título corto y detalle.
+const AVISO: Record<TipoAviso, { borde: string; texto: string }> = {
+  error: { borde: 'border-error', texto: 'text-error' },
+  exito: { borde: 'border-exito', texto: 'text-exito' },
+  info: { borde: 'border-info', texto: 'text-info' },
+  advertencia: { borde: 'border-advertencia', texto: 'text-advertencia' },
 };
 
-export function Aviso({ tipo, children }: { tipo: TipoAviso; children: ReactNode }) {
+export function Aviso({ tipo, titulo, children }: { tipo: TipoAviso; titulo?: string; children?: ReactNode }) {
   const a = AVISO[tipo];
   return (
     <View
-      className={`my-1 flex-row gap-3 rounded-xl p-4 ${a.fondo}`}
+      className={`my-1 flex-row items-center gap-3 rounded-2xl border-l-4 bg-tarjeta py-3 pr-4 pl-3 shadow-tarjeta ${a.borde}`}
       accessibilityRole="alert"
       accessibilityLiveRegion="polite">
-      <Icono icono={a.icono} tono={a.tono} />
-      <Text className={`flex-1 font-medio text-lg leading-7 ${a.texto}`}>{children}</Text>
+      <IconoEstado tipo={tipo} />
+      <View className="flex-1 gap-0.5">
+        {titulo ? <Text className={`font-negrita text-lg ${a.texto}`}>{titulo}</Text> : null}
+        {children ? (
+          <Text className={titulo ? 'font-regular text-base leading-6 text-texto' : `font-medio text-lg leading-7 ${a.texto}`}>{children}</Text>
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -486,6 +494,35 @@ export function Dato({ etiqueta, valor }: { etiqueta: string; valor: string }) {
     <View className="gap-0.5 py-2">
       <Text className="font-regular text-base text-texto-suave">{etiqueta}</Text>
       <Text className="font-medio text-lg text-texto">{valor}</Text>
+    </View>
+  );
+}
+
+/**
+ * Dato sensible (p. ej. la contraseña temporal, D-15): oculto por defecto, con un botón de ojo
+ * para mostrarlo mientras se entrega a la persona. Se muestra en grupos de 5 para dictarlo mejor.
+ */
+export function DatoSecreto({ etiqueta, valor }: { etiqueta: string; valor: string }) {
+  const [visible, setVisible] = useState(false);
+  const legible = valor.replace(/(.{5})(?=.)/g, '$1 ');
+  return (
+    <View className="flex-row items-center gap-2 py-2">
+      <View className="flex-1 gap-0.5">
+        <Text className="font-regular text-base text-texto-suave">{etiqueta}</Text>
+        <Text
+          selectable={visible}
+          className="font-negrita text-2xl tracking-widest text-texto"
+          accessibilityLabel={visible ? `${etiqueta}: ${valor.split('').join(' ')}` : `${etiqueta} oculta`}>
+          {visible ? legible : '•'.repeat(valor.length)}
+        </Text>
+      </View>
+      <Pressable
+        onPress={() => setVisible((v) => !v)}
+        accessibilityRole="button"
+        accessibilityLabel={visible ? `Ocultar ${etiqueta.toLowerCase()}` : `Mostrar ${etiqueta.toLowerCase()}`}
+        className="size-14 items-center justify-center rounded-full bg-acento-suave active:bg-primario-suave">
+        <Icono icono={visible ? EyeOff : Eye} tono="primario" tamano={26} />
+      </Pressable>
     </View>
   );
 }

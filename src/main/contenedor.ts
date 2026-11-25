@@ -15,6 +15,7 @@ import { CrearCuenta } from '@/application/use-cases/crear-cuenta';
 import { ConsultarMesaDelVeedor } from '@/application/use-cases/mesa-veedor';
 import { RegistrarActa } from '@/application/use-cases/registrar-acta';
 import { ReemplazarVeedor } from '@/application/use-cases/reemplazar-veedor';
+import { ConsultarResultadosRecinto, ConsultarTablero, VerDetalleActa } from '@/application/use-cases/resultados';
 import { SincronizarActas } from '@/application/use-cases/sincronizar-actas';
 import {
   AgregarMesas,
@@ -47,6 +48,7 @@ import { AutenticacionSupabase } from '@/infrastructure/supabase/autenticacion.s
 import { supabase } from '@/infrastructure/supabase/client';
 import { CuentasSupabase } from '@/infrastructure/supabase/cuentas.supabase';
 import { PerfilesSupabase } from '@/infrastructure/supabase/repositorios.supabase';
+import { FotosActaSupabase, ObservadorActasSupabase, ResultadosSupabase } from '@/infrastructure/supabase/resultados.supabase';
 import { SesionSupabase } from '@/infrastructure/supabase/sesion.supabase';
 import {
   AsignacionesSupabase,
@@ -75,6 +77,8 @@ export function crearContenedor(): Contenedor {
   const fotos = new FotosFileSystem();
   const veedoresRecinto = new VeedoresRecintoSupabase(supabase);
   const ubicacion = new UbicacionExpo();
+  const resultados = new ResultadosSupabase(supabase);
+  const fotosRemotas = new FotosActaSupabase(supabase);
 
   return {
     sesion,
@@ -122,5 +126,9 @@ export function crearContenedor(): Contenedor {
       servidor: servidorActas,
     }),
     sincronizarActas: new SincronizarActas({ sesion, outbox, servidor: servidorActas, fotos, red, reloj: relojSistema }),
+    consultarTablero: new ConsultarTablero({ sesion, resultados }),
+    consultarResultadosRecinto: new ConsultarResultadosRecinto({ sesion, resultados, mesas }),
+    verDetalleActa: new VerDetalleActa({ sesion, resultados, fotos: fotosRemotas }),
+    observadorActas: new ObservadorActasSupabase(supabase),
   };
 }

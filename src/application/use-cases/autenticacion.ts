@@ -38,7 +38,7 @@ export const MENSAJES_ACCESO: Record<Exclude<CodigoErrorAcceso, 'validacion'>, s
   sin_conexion: 'No hay conexión a internet. Este paso necesita conexión.',
   demasiados_intentos: 'Hizo demasiados intentos. Espere unos minutos e intente de nuevo.',
   clave_debil: 'La clave debe tener al menos 8 caracteres, con letras y números.',
-  no_requerido: 'Su clave ya había sido cambiada. Ingrese con su correo y su clave nueva.',
+  no_requerido: 'Ingrese con su correo y su clave nueva.',
   sin_sesion: 'Su sesión terminó. Ingrese de nuevo.',
   sin_perfil: 'Su cuenta no tiene un perfil registrado. Comuníquese con su coordinador.',
 };
@@ -87,7 +87,7 @@ export class SolicitarCodigoPrimerIngreso {
 }
 
 /** Mensaje que ve la persona en el ingreso después de guardar su clave nueva. */
-export const MENSAJE_CLAVE_GUARDADA = 'Listo: su clave nueva quedó guardada. Ahora ingrese con su correo y su clave nueva.';
+export const MENSAJE_CLAVE_GUARDADA = 'Ahora ingrese con su correo y su clave nueva.';
 
 /**
  * Al cambiar la clave, el servidor cierra las sesiones de la cuenta. Por eso, al terminar

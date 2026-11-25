@@ -1,11 +1,10 @@
-// Perfil (Figma: avatar, nombre, rol y filas de menú) y la pestaña de resultados (Fase 7).
-import { ChartColumn, LogOut } from '@/presentation/components/iconos';
+// Perfil (Figma: avatar, nombre, rol y filas de menú).
+import { LogOut } from '@/presentation/components/iconos';
 import { useState } from 'react';
 import { View } from 'react-native';
 
 import type { Rol } from '@/domain/value-objects/rol';
 
-import { Icono } from '../components/icono';
 import { Avatar, Dato, FilaMenu, ModalConfirmacion, Pantalla, Parrafo, Titulo, type Confirmacion } from '../components/ui';
 import { useCasosDeUso } from '../providers/contenedor';
 import { useSesion } from '../providers/sesion';
@@ -51,24 +50,6 @@ export function PantallaPerfil({ avisoSalida }: { avisoSalida?: string } = {}) {
       ) : null}
       <FilaMenu titulo="Cerrar sesión" icono={LogOut} onPress={salir} peligro />
       <ModalConfirmacion datos={confirmacion} alCerrar={() => setConfirmacion(null)} />
-    </Pantalla>
-  );
-}
-
-/** Pestaña reservada: el tablero en tiempo real se construye en la Fase 7. */
-export function PantallaResultados() {
-  return (
-    <Pantalla fija>
-      <Titulo>Resultados</Titulo>
-      <View className="flex-1 items-center justify-center gap-4">
-        <View className="size-24 items-center justify-center rounded-full bg-acento-suave">
-          <Icono icono={ChartColumn} tono="primario" tamano={44} />
-        </View>
-        <Parrafo centrado>Aquí verá el avance del conteo y los votos por candidatura.</Parrafo>
-        <Parrafo suave centrado>
-          Disponible próximamente.
-        </Parrafo>
-      </View>
     </Pantalla>
   );
 }

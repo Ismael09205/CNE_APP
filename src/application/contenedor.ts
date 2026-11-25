@@ -1,6 +1,7 @@
 // Contrato de lo que la UI puede usar. `src/main` lo implementa con infrastructure;
 // `presentation` solo conoce este tipo (regla de dependencias).
 import type { EstadoRed } from './ports/red.port';
+import type { ObservadorActas } from './ports/seguimiento.port';
 import type { ObservadorSesion, SesionActual } from './ports/sesion.port';
 import type { DesactivarCuenta, RestablecerClaveAsistido } from './use-cases/administrar-cuenta';
 import type {
@@ -16,6 +17,7 @@ import type { CrearCuenta } from './use-cases/crear-cuenta';
 import type { ConsultarMesaDelVeedor } from './use-cases/mesa-veedor';
 import type { RegistrarActa } from './use-cases/registrar-acta';
 import type { ReemplazarVeedor } from './use-cases/reemplazar-veedor';
+import type { ConsultarResultadosRecinto, ConsultarTablero, VerDetalleActa } from './use-cases/resultados';
 import type { SincronizarActas } from './use-cases/sincronizar-actas';
 import type {
   AgregarMesas,
@@ -62,4 +64,9 @@ export type Contenedor = {
   readonly tomarUbicacionActa: TomarUbicacionActa;
   readonly registrarActa: RegistrarActa;
   readonly sincronizarActas: SincronizarActas;
+  // Fase 7
+  readonly consultarTablero: ConsultarTablero;
+  readonly consultarResultadosRecinto: ConsultarResultadosRecinto;
+  readonly verDetalleActa: VerDetalleActa;
+  readonly observadorActas: ObservadorActas;
 };

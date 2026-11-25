@@ -10,7 +10,7 @@ import { MENSAJE_INESPERADO, mensajeError } from '../hooks/use-errores';
 import { NOMBRE_ROL } from '../pantallas/perfil';
 import { useCasosDeUso } from '../providers/contenedor';
 import { useSesion } from '../providers/sesion';
-import { Aviso, Avatar, Boton, Cargando, ModalConfirmacion, Parrafo, type Confirmacion } from './ui';
+import { Aviso, Avatar, Boton, Cargando, DatoSecreto, ModalConfirmacion, Parrafo, type Confirmacion } from './ui';
 
 const estadoCuenta = (p: Perfil) =>
   !p.activo
@@ -27,10 +27,13 @@ export function ListaPersonas() {
   const [aviso, setAviso] = useState<{ tipo: 'exito' | 'error'; texto: string } | null>(null);
   const [ocupado, setOcupado] = useState<string | null>(null);
   const [confirmacion, setConfirmacion] = useState<Confirmacion | null>(null);
+  // Contraseña temporal recién emitida (D-15: se muestra solo esta vez, oculta hasta tocar el ojo).
+  const [nuevaClave, setNuevaClave] = useState<{ nombre: string; clave: string } | null>(null);
 
   async function ejecutar(id: string, accion: () => Promise<void>) {
     setOcupado(id);
     setAviso(null);
+    setNuevaClave(null);
     try {
       await accion();
       await queryClient.invalidateQueries({ queryKey: ['personas'] });
@@ -45,16 +48,13 @@ export function ListaPersonas() {
     setConfirmacion({
       titulo: 'Nueva clave temporal',
       mensaje: `¿Dar una clave temporal nueva a ${p.nombres} ${p.apellidos}?`,
-      nota: 'Su clave actual dejará de funcionar. Al ingresar se le pedirá elegir una nueva.',
+      nota: 'La clave anterior dejará de funcionar. Al ingresar, la persona elegirá una nueva.',
       textoConfirmar: 'Dar clave',
       alConfirmar: () =>
         void ejecutar(p.id, async () => {
           const r = await restablecerClaveAsistido.ejecutar(p.id);
-          setAviso(
-            r.ok
-              ? { tipo: 'exito', texto: `Nueva clave temporal de ${p.nombres} ${p.apellidos}: ${r.value.claveTemporal}  (se muestra solo esta vez)` }
-              : { tipo: 'error', texto: mensajeError(r.error) },
-          );
+          if (r.ok) setNuevaClave({ nombre: `${p.nombres} ${p.apellidos}`, clave: r.value.claveTemporal });
+          else setAviso({ tipo: 'error', texto: mensajeError(r.error) });
         }),
     });
 
@@ -62,7 +62,7 @@ export function ListaPersonas() {
     setConfirmacion({
       titulo: 'Desactivar cuenta',
       mensaje: `¿Seguro que desea desactivar la cuenta de ${p.nombres} ${p.apellidos}?`,
-      nota: 'Dejará de tener acceso de inmediato.',
+      nota: 'Desde este momento ya no podrá ingresar a la app.',
       textoConfirmar: 'Desactivar',
       peligro: true,
       alConfirmar: () =>
@@ -78,6 +78,14 @@ export function ListaPersonas() {
   return (
     <>
       {aviso ? <Aviso tipo={aviso.tipo}>{aviso.texto}</Aviso> : null}
+      {nuevaClave ? (
+        <View className="my-1 gap-1 rounded-2xl bg-tarjeta px-4 py-3 shadow-tarjeta">
+          <Aviso tipo="exito" titulo="Contraseña temporal lista">Es para {nuevaClave.nombre}.</Aviso>
+          <DatoSecreto etiqueta="Contraseña temporal" valor={nuevaClave.clave} />
+          <Parrafo suave>Solo se muestra esta vez. Entréguesela a la persona; al ingresar elegirá una nueva.</Parrafo>
+          <Boton titulo="Listo, ya la entregué" variante="secundario" onPress={() => setNuevaClave(null)} />
+        </View>
+      ) : null}
       {personas.data.length === 0 ? (
         <Parrafo suave>
           {perfil?.rol === 'coordinador_recinto' ? 'Todavía no hay veedores en su recinto.' : 'Todavía no hay personas a su cargo.'}
