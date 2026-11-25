@@ -3,9 +3,12 @@ import { createContext, useContext, type ReactNode } from 'react';
 
 import type { Contenedor } from '@/application/contenedor';
 
+import { registrarReporteErrores } from '../hooks/use-errores';
+
 const ContextoContenedor = createContext<Contenedor | null>(null);
 
 export function ContenedorProvider({ valor, children }: { valor: Contenedor; children: ReactNode }) {
+  registrarReporteErrores(valor.reporteErrores);
   return <ContextoContenedor.Provider value={valor}>{children}</ContextoContenedor.Provider>;
 }
 

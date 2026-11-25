@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "CNE_APP_Ismael",
+    "name": "Control Electoral",
     "slug": "CNE_APP_Ismael",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -15,7 +15,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#0f4c5c",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -40,9 +40,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#0f4c5c",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "imageWidth": 160
         }
       ],
       [
@@ -64,7 +64,14 @@
         }
       ],
       "@maplibre/maplibre-react-native",
-      "@sentry/react-native"
+      [
+        "@sentry/react-native",
+        {
+          "url": "https://sentry.io/",
+          "organization": "escuela-politecnica-naciona-5a",
+          "project": "cne-app"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

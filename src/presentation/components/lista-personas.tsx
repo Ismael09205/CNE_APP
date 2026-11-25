@@ -6,7 +6,7 @@ import { Text, View } from 'react-native';
 
 import type { Perfil } from '@/domain/entities/perfil';
 
-import { MENSAJE_INESPERADO, mensajeError } from '../hooks/use-errores';
+import { MENSAJE_INESPERADO, mensajeError, reportarInesperado } from '../hooks/use-errores';
 import { NOMBRE_ROL } from '../pantallas/perfil';
 import { useCasosDeUso } from '../providers/contenedor';
 import { useSesion } from '../providers/sesion';
@@ -37,7 +37,8 @@ export function ListaPersonas() {
     try {
       await accion();
       await queryClient.invalidateQueries({ queryKey: ['personas'] });
-    } catch {
+    } catch (e) {
+      reportarInesperado(e, 'administrar_cuenta');
       setAviso({ tipo: 'error', texto: MENSAJE_INESPERADO });
     } finally {
       setOcupado(null);

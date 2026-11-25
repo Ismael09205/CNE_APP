@@ -4,6 +4,7 @@
 export type { LucideIcon } from 'lucide-react-native';
 
 export { default as AlertCircle } from 'lucide-react-native/icons/circle-alert';
+export { default as Bug } from 'lucide-react-native/icons/bug';
 export { default as Building2 } from 'lucide-react-native/icons/building-2';
 export { default as Camera } from 'lucide-react-native/icons/camera';
 export { default as ChartColumn } from 'lucide-react-native/icons/chart-column';
@@ -30,5 +31,6 @@ export { default as User } from 'lucide-react-native/icons/user';
 export { default as UserPlus } from 'lucide-react-native/icons/user-plus';
 export { default as UserX } from 'lucide-react-native/icons/user-x';
 export { default as Users } from 'lucide-react-native/icons/users';
+export { default as Zap } from 'lucide-react-native/icons/zap';
 export { default as Wifi } from 'lucide-react-native/icons/wifi';
 export { default as WifiOff } from 'lucide-react-native/icons/wifi-off';

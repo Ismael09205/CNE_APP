@@ -2,6 +2,7 @@
 // Paso 1: foto a la ruta fija. Paso 2: RPC que inserta acta + votos (solo INSERT).
 // Decisiones: F6-5 (el servidor valida la vigencia en confirmada_en), F6-6 (foto huérfana).
 import { esperaReintentoMs, type EnvioActa } from '@/domain/entities/envio-acta';
+import type { ReporteErrores } from '../ports/reporte-errores.port';
 import type { ActaOutboxRepository } from '@/domain/repositories/acta-outbox.repository';
 
 import type { AlmacenFotosLocal } from '../ports/almacen-fotos.port';
@@ -32,6 +33,8 @@ export class SincronizarActas {
       readonly fotos: AlmacenFotosLocal;
       readonly red: Pick<EstadoRed, 'hayConexion'>;
       readonly reloj: Reloj;
+      /** ADR-18: errores inesperados al enviar (p. ej. una foto que no sube). */
+      readonly reporte?: ReporteErrores;
     },
   ) {}
 
@@ -74,6 +77,9 @@ export class SincronizarActas {
           return { ...r, pendientes: r.pendientes + 1, detenida: 'sin_sesion' };
         }
         const codigo = e instanceof FallaRed ? 'sin_conexion' : 'error_inesperado';
+        if (codigo === 'error_inesperado') {
+          this.deps.reporte?.capturar(e, { operacion: 'sincronizar_acta', datos: { dignidad: envio.acta.dignidad, intentos: envio.intentos } });
+        }
         await outbox.marcar(envio.acta.id, 'pendiente', { error: codigo, contarIntento: true });
         r.pendientes++;
         if (e instanceof FallaRed) {

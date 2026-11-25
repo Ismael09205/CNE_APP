@@ -20,6 +20,7 @@ import { CUADROS_NITIDOS_REQUERIDOS, esNitida, UMBRAL_NITIDEZ } from '@/domain/r
 
 import { Aviso, Boton, Pantalla, Parrafo } from '../components/ui';
 import { varianzaLaplaciano } from './nitidez';
+import { reportarInesperado } from '../hooks/use-errores';
 
 const SafeAreaView = withUniwind(SafeAreaViewBase);
 
@@ -95,7 +96,8 @@ export function CamaraActa({ alDisparar, alConfirmar, alCancelar }: Props) {
     try {
       const archivo = await salidaFoto.capturePhotoToFile({ flashMode: 'off', enableShutterSound: true }, {});
       setFoto({ uri: aUri(archivo.filePath), capturadaEn: new Date() });
-    } catch {
+    } catch (e) {
+      reportarInesperado(e, 'tomar_foto');
       setError('No se pudo tomar la foto. Intente de nuevo.');
     } finally {
       setTomando(false);

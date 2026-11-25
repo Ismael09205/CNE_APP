@@ -1,5 +1,5 @@
 -- =============================================================================
--- Pruebas de la Fase 6: RPC registrar_acta y fotos en Storage (F9, F10).
+-- Pruebas de la Fase 6 (40 casos): RPC registrar_acta y fotos en Storage (F9, F10).
 -- Decisiones F6-5 (vigencia en confirmada_en), F6-6 (foto primero; huérfana
 -- reemplazable por el veedor vigente) y F6-7 (5 minutos de tolerancia).
 -- Corre en una transacción y termina en ROLLBACK. Requiere el seed cargado.
@@ -97,8 +97,11 @@ select pg_temp.id(k), cedula, 'Prueba', 'Persona', '0990000000', lower(k) || '@a
     ('V6', '1001000122', 'veedor',                 false)
   ) as t(k, cedula, rol, temporal);
 insert into public.coordinaciones_provinciales (coordinador_id, provincia_id) values (pg_temp.id('P1'), 10);
+-- Si hay coordinaciones o asignaciones reales en esas mesas, se cierran solo dentro de la prueba (ROLLBACK).
+update public.coordinaciones_recinto set hasta = now() - interval '3 hours' where hasta is null and recinto_id in (pg_temp.id('r1'), pg_temp.id('r2'));
 insert into public.coordinaciones_recinto (recinto_id, coordinador_id, asignado_por) values
   (pg_temp.id('r1'), pg_temp.id('C1'), pg_temp.id('P1')), (pg_temp.id('r2'), pg_temp.id('C2'), pg_temp.id('P1'));
+update public.asignaciones_mesa set hasta = now() - interval '3 hours' where hasta is null and mesa_id in (pg_temp.id('m1'), pg_temp.id('m2'), pg_temp.id('m3'));
 insert into public.veedores_recinto (veedor_id, recinto_id, registrado_por)
 select pg_temp.id(v), pg_temp.id(r), pg_temp.id('P1')
   from (values ('V1', 'r1'), ('V2', 'r1'), ('V4', 'r1'), ('V3', 'r2'), ('V6', 'r2')) t(v, r);

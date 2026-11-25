@@ -1,9 +1,9 @@
-// Metro con Uniwind (Tailwind CSS v4 para React Native), según planUi.md.
-// withUniwindConfig debe ser el envoltorio más externo.
-const { getDefaultConfig } = require('expo/metro-config');
+// Metro: configuración de Sentry (ids de depuración para los source maps de Hermes, ADR-18)
+// envuelta por Uniwind (estilos con className, planUi.md).
+const { getSentryExpoConfig } = require('@sentry/react-native/metro');
 const { withUniwindConfig } = require('uniwind/metro');
 
-const config = getDefaultConfig(__dirname);
+const config = getSentryExpoConfig(__dirname);
 
 module.exports = withUniwindConfig(config, {
   cssEntryFile: './src/global.css',

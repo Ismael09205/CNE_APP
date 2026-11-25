@@ -53,3 +53,6 @@ PRUEBAS_RF_ADR.md
 # skills locales del asistente (no se suben)
 .claude/skills/
 skills-lock.json
+
+# Token de Sentry para subir los source maps (secreto, nunca al repositorio)
+.env.sentry-build-plugin

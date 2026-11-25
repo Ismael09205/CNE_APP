@@ -31,6 +31,7 @@ import {
 } from '@/application/use-cases/territorio';
 import { TomarUbicacionActa } from '@/application/use-cases/ubicacion-acta';
 import { RedNetInfo } from '@/infrastructure/device/red.netinfo';
+import { ReporteSentry } from '@/infrastructure/monitoring/sentry';
 import { generadorIdExpo, relojSistema } from '@/infrastructure/device/sistema';
 import { UbicacionExpo } from '@/infrastructure/device/ubicacion.expo';
 import { ActaOutboxSqlite } from '@/infrastructure/local/acta-outbox.sqlite';
@@ -79,6 +80,7 @@ export function crearContenedor(): Contenedor {
   const ubicacion = new UbicacionExpo();
   const resultados = new ResultadosSupabase(supabase);
   const fotosRemotas = new FotosActaSupabase(supabase);
+  const reporteErrores = new ReporteSentry();
 
   return {
     sesion,
@@ -125,10 +127,11 @@ export function crearContenedor(): Contenedor {
       reloj: relojSistema,
       servidor: servidorActas,
     }),
-    sincronizarActas: new SincronizarActas({ sesion, outbox, servidor: servidorActas, fotos, red, reloj: relojSistema }),
+    sincronizarActas: new SincronizarActas({ sesion, outbox, servidor: servidorActas, fotos, red, reloj: relojSistema, reporte: reporteErrores }),
     consultarTablero: new ConsultarTablero({ sesion, resultados }),
     consultarResultadosRecinto: new ConsultarResultadosRecinto({ sesion, resultados, mesas }),
     verDetalleActa: new VerDetalleActa({ sesion, resultados, fotos: fotosRemotas }),
     observadorActas: new ObservadorActasSupabase(supabase),
+    reporteErrores,
   };
 }

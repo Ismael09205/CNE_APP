@@ -1,3 +1,4 @@
+import type { ContextoError, ReporteErrores } from '../ports/reporte-errores.port';
 import type { Acta } from '@/domain/entities/acta';
 
 import {
@@ -55,7 +56,7 @@ class ServidorFalso implements Pick<ServidorActas, 'subirFoto' | 'registrar'> {
   }
 }
 
-function montar(servidor = new ServidorFalso(), opciones: { conectado?: boolean; veedor?: string } = {}) {
+function montar(servidor = new ServidorFalso(), opciones: { conectado?: boolean; veedor?: string; reporte?: ReporteErrores } = {}) {
   const outbox = new OutboxEnMemoria();
   outbox.ahora = () => AHORA;
   const fotos = new FotosEnMemoria();
@@ -67,6 +68,7 @@ function montar(servidor = new ServidorFalso(), opciones: { conectado?: boolean;
     fotos,
     red: { hayConexion: async () => conectado },
     reloj: { ahora: () => AHORA },
+    reporte: opciones.reporte,
   });
   const encolar = async (a: Acta) => {
     fotos.guardadas.add(a.evidencia.fotoPath);
@@ -78,6 +80,22 @@ function montar(servidor = new ServidorFalso(), opciones: { conectado?: boolean;
 const estado = (o: OutboxEnMemoria, id: string) => o.envios.get(id);
 
 describe('SincronizarActas (F10)', () => {
+  test('ADR-18: un error inesperado (la foto no sube) se reporta sin datos personales; la red caída no', async () => {
+    const reportes: { error: unknown; contexto: ContextoError }[] = [];
+    const reporte: ReporteErrores = { capturar: (error, contexto) => void reportes.push({ error, contexto }), definirRol: () => undefined, definirPantalla: () => undefined, probarCierreNativo: () => undefined };
+    const { caso, outbox, encolar } = montar(new ServidorFalso(() => new Error('Storage 500')), { reporte });
+    await encolar(acta('a1'));
+    await caso.ejecutar();
+    expect(estado(outbox, 'a1')).toMatchObject({ estado: 'pendiente', ultimoError: 'error_inesperado' });
+    expect(reportes).toHaveLength(1);
+    expect(reportes[0].contexto).toEqual({ operacion: 'sincronizar_acta', datos: { dignidad: 'alcaldia', intentos: 0 } });
+
+    const sinRed = montar(new ServidorFalso(() => new FallaRed('sin red')), { reporte });
+    await sinRed.encolar(acta('a2'));
+    await sinRed.caso.ejecutar();
+    expect(reportes).toHaveLength(1);
+  });
+
   test('sube la foto, registra el acta, la marca guardada y borra la foto local (F6-3)', async () => {
     const { caso, outbox, fotos, servidor, encolar } = montar();
     await encolar(acta('a1'));

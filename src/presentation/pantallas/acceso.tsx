@@ -11,7 +11,7 @@ import { codigoYClaveSchema, inicioSesionSchema, solicitudCodigoSchema } from '@
 
 import { AnimacionUrna } from '../components/animacion-urna';
 import { Aviso, Boton, Campo, CodigoOtp, Enlace, Pantalla, Parrafo, Titulo } from '../components/ui';
-import { MENSAJE_INESPERADO, mensajeError, mensajesCampo } from '../hooks/use-errores';
+import { MENSAJE_INESPERADO, mensajeError, mensajesCampo, reportarInesperado } from '../hooks/use-errores';
 import { useCasosDeUso } from '../providers/contenedor';
 import { useSesion } from '../providers/sesion';
 
@@ -32,7 +32,8 @@ export function PantallaIngreso() {
       try {
         const r = await enTransicion(() => iniciarSesion.ejecutar(value));
         if (!r.ok) setError(mensajeError(r.error));
-      } catch {
+      } catch (e) {
+        reportarInesperado(e, 'iniciar_sesion');
         setError(MENSAJE_INESPERADO);
       }
     },
@@ -200,7 +201,8 @@ export function PantallaPrimerIngreso() {
       const r = await solicitarCodigoPrimerIngreso.ejecutar();
       if (r.ok) setCorreo(r.value.correo);
       else setError(mensajeError(r.error));
-    } catch {
+    } catch (e) {
+      reportarInesperado(e, 'pedir_codigo_primer_ingreso');
       setError(MENSAJE_INESPERADO);
     } finally {
       setEnviando(false);
@@ -224,7 +226,8 @@ export function PantallaPrimerIngreso() {
             alEnviar={async (v) => {
               try {
                 return alGuardar(await enTransicion(() => completarPrimerIngreso.ejecutar(v)));
-              } catch {
+              } catch (e) {
+                reportarInesperado(e, 'completar_primer_ingreso');
                 return MENSAJE_INESPERADO;
               }
             }}
@@ -259,7 +262,8 @@ export function PantallaRecuperar() {
     try {
       const r = await solicitarRecuperacion.ejecutar({ correo: destino });
       if (!r.ok) setError(mensajeError(r.error));
-    } catch {
+    } catch (e) {
+      reportarInesperado(e, 'reenviar_codigo_recuperacion');
       setError(MENSAJE_INESPERADO);
     } finally {
       setReenviando(false);
@@ -275,7 +279,8 @@ export function PantallaRecuperar() {
         const r = await solicitarRecuperacion.ejecutar(value);
         if (r.ok) setCorreo(r.value.correo);
         else setError(mensajeError(r.error));
-      } catch {
+      } catch (e) {
+        reportarInesperado(e, 'pedir_codigo_recuperacion');
         setError(MENSAJE_INESPERADO);
       }
     },
@@ -295,7 +300,8 @@ export function PantallaRecuperar() {
             alEnviar={async (v) => {
               try {
                 return alGuardar(await enTransicion(() => restablecerConCodigo.ejecutar(correo, v)));
-              } catch {
+              } catch (e) {
+                reportarInesperado(e, 'restablecer_clave');
                 return MENSAJE_INESPERADO;
               }
             }}

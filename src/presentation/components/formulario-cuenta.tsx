@@ -8,7 +8,7 @@ import { View } from 'react-native';
 import type { Recinto } from '@/domain/entities/recinto';
 import { datosPersonalesSchema, type NuevaCuentaInput } from '@/domain/schemas/perfil.schema';
 
-import { MENSAJE_INESPERADO, mensajeError, mensajesCampo } from '../hooks/use-errores';
+import { MENSAJE_INESPERADO, mensajeError, mensajesCampo, reportarInesperado } from '../hooks/use-errores';
 import { useCasosDeUso } from '../providers/contenedor';
 import { Aviso, Boton, Campo, Dato, DatoSecreto, Opciones, Parrafo } from './ui';
 
@@ -62,7 +62,8 @@ export function FormularioCuenta({
         setCreada({ nombre: `${value.nombres} ${value.apellidos}`, correo: value.correo, clave: r.value.claveTemporal });
         form.reset();
         await queryClient.invalidateQueries({ queryKey: ['personas'] });
-      } catch {
+      } catch (e) {
+        reportarInesperado(e, 'crear_cuenta');
         setErrorGeneral(MENSAJE_INESPERADO);
       }
     },

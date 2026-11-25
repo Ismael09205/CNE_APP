@@ -34,7 +34,7 @@ import {
   type Confirmacion,
   type TipoAviso,
 } from '../components/ui';
-import { MENSAJE_INESPERADO, mensajeError, mensajesCampo } from '../hooks/use-errores';
+import { MENSAJE_INESPERADO, mensajeError, mensajesCampo, reportarInesperado } from '../hooks/use-errores';
 import { useCasosDeUso } from '../providers/contenedor';
 import { useSesion } from '../providers/sesion';
 import { useSincronizacion } from '../providers/sincronizacion';
@@ -476,7 +476,8 @@ function PasoConfirmacion({
       setSinConexionAlGuardar(!conectado);
       void sincronizar(true);
       setGuardada(true);
-    } catch {
+    } catch (e) {
+      reportarInesperado(e, 'guardar_acta');
       setError('No se pudo guardar el acta en el teléfono. Intente de nuevo.');
     } finally {
       setGuardando(false);

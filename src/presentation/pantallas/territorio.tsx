@@ -26,7 +26,7 @@ import {
   Titulo,
   type Confirmacion,
 } from '../components/ui';
-import { MENSAJE_INESPERADO, mensajeError, mensajesCampo } from '../hooks/use-errores';
+import { MENSAJE_INESPERADO, mensajeError, mensajesCampo, reportarInesperado } from '../hooks/use-errores';
 import { useCasosDeUso } from '../providers/contenedor';
 
 type AvisoEstado = { tipo: 'exito' | 'error' | 'info'; texto: string } | null;
@@ -103,7 +103,8 @@ export function NuevoRecinto() {
       const r = await tomarUbicacionRecinto.ejecutar();
       if (r.ok) setGps(r.value);
       else setAviso({ tipo: 'error', texto: mensajeError(r.error) });
-    } catch {
+    } catch (e) {
+      reportarInesperado(e, 'tomar_gps_recinto');
       setAviso({ tipo: 'error', texto: MENSAJE_INESPERADO });
     } finally {
       setLeyendo(false);
@@ -130,7 +131,8 @@ export function NuevoRecinto() {
         if (!r.ok) return setAviso({ tipo: 'error', texto: mensajeError(r.error) });
         await queryClient.invalidateQueries({ queryKey: ['recintos'] });
         router.replace({ pathname: '/provincial/recinto/[id]', params: { id: r.value.id } });
-      } catch {
+      } catch (e) {
+        reportarInesperado(e, 'crear_recinto');
         setAviso({ tipo: 'error', texto: MENSAJE_INESPERADO });
       }
     },
@@ -224,7 +226,8 @@ export function DetalleRecintoProvincial({ recintoId }: { recintoId: string }) {
           if (r.ok) setEligiendo(false);
           await queryClient.invalidateQueries({ queryKey: ['coordinaciones'] });
           await queryClient.invalidateQueries({ queryKey: ['coordinadores'] });
-        } catch {
+        } catch (e) {
+          reportarInesperado(e, 'asignar_coordinador');
           setAviso({ tipo: 'error', texto: MENSAJE_INESPERADO });
         }
       },
@@ -246,7 +249,8 @@ export function DetalleRecintoProvincial({ recintoId }: { recintoId: string }) {
         setAviso({ tipo: 'exito', texto: `Se agregaron ${r.value.creadas} juntas.` });
         formApi.reset();
         await queryClient.invalidateQueries({ queryKey: ['mesas', recintoId] });
-      } catch {
+      } catch (e) {
+        reportarInesperado(e, 'agregar_mesas');
         setAviso({ tipo: 'error', texto: MENSAJE_INESPERADO });
       }
     },
@@ -412,7 +416,8 @@ export function MesaRecinto({ mesaId }: { mesaId: string }) {
           await queryClient.invalidateQueries({ queryKey: ['veedores-recinto', recinto?.id] });
           if (r.ok) router.back();
           else setAviso({ tipo: 'error', texto: mensajeError(r.error) });
-        } catch {
+        } catch (e) {
+          reportarInesperado(e, 'asignar_veedor');
           setAviso({ tipo: 'error', texto: MENSAJE_INESPERADO });
         }
       },

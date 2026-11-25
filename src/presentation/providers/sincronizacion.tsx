@@ -7,6 +7,7 @@ import { AppState } from 'react-native';
 import type { ResultadoSincronizacion } from '@/application/use-cases/sincronizar-actas';
 
 import { useCasosDeUso } from './contenedor';
+import { reportarInesperado } from '../hooks/use-errores';
 
 type ContextoSincronizacion = {
   readonly conectado: boolean;
@@ -35,7 +36,8 @@ export function SincronizacionProvider({ children }: { children: ReactNode }) {
         pendientes.current = r.pendientes;
         setUltimo(r);
         if (r.enviadas || r.conflictos || r.rechazadas) await queryClient.invalidateQueries({ queryKey: ['mesa-veedor'] });
-      } catch {
+      } catch (e) {
+        reportarInesperado(e, 'sincronizar_actas');
         // Un fallo inesperado no debe romper la pantalla: se reintenta en el próximo ciclo.
       } finally {
         setSincronizando(false);

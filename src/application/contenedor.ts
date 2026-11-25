@@ -1,6 +1,7 @@
 // Contrato de lo que la UI puede usar. `src/main` lo implementa con infrastructure;
 // `presentation` solo conoce este tipo (regla de dependencias).
 import type { EstadoRed } from './ports/red.port';
+import type { ReporteErrores } from './ports/reporte-errores.port';
 import type { ObservadorActas } from './ports/seguimiento.port';
 import type { ObservadorSesion, SesionActual } from './ports/sesion.port';
 import type { DesactivarCuenta, RestablecerClaveAsistido } from './use-cases/administrar-cuenta';
@@ -69,4 +70,6 @@ export type Contenedor = {
   readonly consultarResultadosRecinto: ConsultarResultadosRecinto;
   readonly verDetalleActa: VerDetalleActa;
   readonly observadorActas: ObservadorActas;
+  // Fase 8 (ADR-18)
+  readonly reporteErrores: ReporteErrores;
 };
